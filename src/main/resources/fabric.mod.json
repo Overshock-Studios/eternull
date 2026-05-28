@@ -1,0 +1,21 @@
+{
+    "schemaVersion": 1,
+    "id": "eternull",
+    "version": "${version}",
+    "name": "Eternull",
+    "description": "",
+    "authors": [],
+    "license": "All Rights Reserved",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "com.eternull.EternullMod"
+        ]
+    },
+    "depends": {
+        "fabricloader": ">=0.19.2",
+        "minecraft": "~26.1",
+        "java": ">=25",
+        "fabric-api": "*"
+    }
+}
