@@ -136,17 +136,14 @@ By default, active corruption must be within a Null Heart radius to spread or ap
 The Heart:
 
 - Pulses with particles and sculk-like sound when ambience is enabled.
+- Emits full block light and renders emissively, so it reads like a living glowstone-like corruption source.
 - Boosts active Null spread chance inside its radius.
 - Defines the maximum practical spread area of a corruption pocket.
+- Requires a pickaxe and diamond-tier mining to harvest.
+- Has very high blast resistance, making it difficult to remove with explosives.
 - Drops a Dark Core when broken.
 
 Null Wards do not destroy Hearts, but they can protect nearby blocks from being converted by Heart-empowered corruption.
-
-### Dormant Reactivation
-
-Dormant Null can wake back up when explosions occur nearby. Each Dormant Null block near affected explosion blocks has a configurable chance to reactivate into active Null.
-
-Null Wards suppress this reactivation inside their protection radius.
 
 ## Mob Conversion
 
@@ -396,11 +393,6 @@ Maximum nearby blocks a Null mob can corrupt during one footprint tick.
 Default: `5`
 Radius in blocks where a Null Ward prevents new corruption spread.
 
-`dormantNullExplosionReactivationChance`
-
-Default: `35`
-Percent chance for each Dormant Null block near an explosion to reactivate into active Null.
-
 `requireNullHeartForSpread`
 
 Default: `true`
@@ -452,6 +444,19 @@ Percent chance per player check for a small corruption glitch when standing on o
 - License: All Rights Reserved
 - Author metadata: Overshock Games
 - Current branch focus: `release/1.20.4-neoforge`
+
+### Generated Textures
+
+`scripts/generate_textures.py` generates the Null Ward and Null Heart block textures from existing mod textures:
+
+- `null_ward.png` is generated as a cyan ward rune over the Nullite ore palette.
+- `null_heart.png` is generated from the existing Null block texture with a red heart-like core and glow accents.
+
+Run it from the repository root:
+
+```powershell
+python scripts/generate_textures.py
+```
 
 ## Building
 

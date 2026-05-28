@@ -11,7 +11,6 @@ public final class EternullConfig {
    private static final ModConfigSpec.IntValue NULL_MOB_FOOTPRINT_CHANCE;
    private static final ModConfigSpec.IntValue NULL_MOB_FOOTPRINT_MAX_BLOCKS;
    private static final ModConfigSpec.IntValue NULL_WARD_RADIUS;
-   private static final ModConfigSpec.IntValue DORMANT_NULL_REACTIVATION_CHANCE;
    private static final ModConfigSpec.BooleanValue REQUIRE_NULL_HEART_FOR_SPREAD;
    private static final ModConfigSpec.IntValue NULL_HEART_RADIUS;
    private static final ModConfigSpec.IntValue NULL_HEART_SPREAD_BONUS;
@@ -46,9 +45,6 @@ public final class EternullConfig {
       NULL_WARD_RADIUS = builder
          .comment("Radius in blocks where a Null Ward prevents new corruption spread.")
          .defineInRange("nullWardRadius", 5, 0, 32);
-      DORMANT_NULL_REACTIVATION_CHANCE = builder
-         .comment("Percent chance for each Dormant Null block near an explosion to reactivate into active Null.")
-         .defineInRange("dormantNullExplosionReactivationChance", 35, 0, 100);
       REQUIRE_NULL_HEART_FOR_SPREAD = builder
          .comment("When true, active corruption must be within a Null Heart radius to spread or apply major corruption effects.")
          .define("requireNullHeartForSpread", true);
@@ -115,10 +111,6 @@ public final class EternullConfig {
 
    public static int nullWardRadius() {
       return NULL_WARD_RADIUS.get();
-   }
-
-   public static int dormantNullReactivationChance() {
-      return DORMANT_NULL_REACTIVATION_CHANCE.get();
    }
 
    public static boolean requireNullHeartForSpread() {

@@ -34,7 +34,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.neoforged.neoforge.event.entity.living.LivingEvent;
-import net.neoforged.neoforge.event.level.ExplosionEvent;
 
 public final class EternullCorruption {
    private static final String EXPOSURE_TAG = "eternullCorruptionExposure";
@@ -138,17 +137,6 @@ public final class EternullCorruption {
       if (exposure >= EternullConfig.mobCorruptionExposureTicks()
          && roll(entity.getRandom(), EternullConfig.mobCorruptionConversionChance())) {
          convertMob(mob, targetType);
-      }
-   }
-
-   public static void onExplosionDetonate(ExplosionEvent.Detonate event) {
-      if (event.getLevel().isClientSide || EternullConfig.dormantNullReactivationChance() <= 0) {
-         return;
-      }
-
-      RandomSource random = event.getLevel().getRandom();
-      for (BlockPos affectedPos : event.getAffectedBlocks()) {
-         reactivateDormantNear(event.getLevel(), affectedPos, random);
       }
    }
 
@@ -382,24 +370,6 @@ public final class EternullCorruption {
       if (roll(random, EternullConfig.nullBlockDormancyChance()) && isActiveCorruption(world.getBlockState(pos))) {
          BlockState oldState = world.getBlockState(pos);
          world.setBlock(pos, copySharedProperties(oldState, ((Block)EternullModBlocks.DORMANT_NULL_BLOCK.get()).defaultBlockState()), 3);
-      }
-   }
-
-   private static void reactivateDormantNear(Level world, BlockPos center, RandomSource random) {
-      BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-      for (int dx = -2; dx <= 2; dx++) {
-         for (int dy = -2; dy <= 2; dy++) {
-            for (int dz = -2; dz <= 2; dz++) {
-               mutable.set(center.getX() + dx, center.getY() + dy, center.getZ() + dz);
-               if (world.getBlockState(mutable).getBlock() == EternullModBlocks.DORMANT_NULL_BLOCK.get()
-                  && !isProtectedByWard(world, mutable)
-                  && roll(random, EternullConfig.dormantNullReactivationChance())) {
-                  BlockState oldState = world.getBlockState(mutable);
-                  world.setBlock(mutable, copySharedProperties(oldState, ((Block)EternullModBlocks.NULLBLOCK.get()).defaultBlockState()), 3);
-                  playBlockGlitch(world, mutable, random);
-               }
-            }
-         }
       }
    }
 

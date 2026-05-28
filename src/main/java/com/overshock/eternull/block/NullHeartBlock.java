@@ -15,7 +15,16 @@ import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 public class NullHeartBlock extends Block {
    public NullHeartBlock() {
-      super(Properties.of().sound(SoundType.SCULK_SHRIEKER).strength(8.0F, 18.0F).requiresCorrectToolForDrops().randomTicks().lightLevel(state -> 9));
+      super(
+         Properties.of()
+            .sound(SoundType.SCULK_SHRIEKER)
+            .strength(30.0F, 1200.0F)
+            .requiresCorrectToolForDrops()
+            .randomTicks()
+            .lightLevel(state -> 15)
+            .hasPostProcess((bs, br, bp) -> true)
+            .emissiveRendering((bs, br, bp) -> true)
+      );
    }
 
    public int getLightBlock(BlockState state, BlockGetter worldIn, BlockPos pos) {

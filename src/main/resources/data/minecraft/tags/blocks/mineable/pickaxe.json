@@ -2,6 +2,8 @@
   "replace": false,
   "values": [
     "eternull:nullite_block",
-    "eternull:nullblock"
+    "eternull:nullblock",
+    "eternull:null_ward",
+    "eternull:null_heart"
   ]
 }
