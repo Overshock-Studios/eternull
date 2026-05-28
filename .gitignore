@@ -37,3 +37,6 @@ Thumbs.db
 
 # Temporary files
 tmp/
+
+# Local recovery/decompilation workspace
+.recovery/
