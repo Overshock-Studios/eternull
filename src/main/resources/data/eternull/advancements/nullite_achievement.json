@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "item": "eternull:nullite"
+    },
+    "title": {
+      "translate": "advancements.nullite_achievement.title"
+    },
+    "description": {
+      "translate": "advancements.nullite_achievement.descr"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "nullite_achievement_0": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "parent": "eternull:corruption"
+}

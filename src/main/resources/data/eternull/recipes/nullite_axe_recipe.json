@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:smithing_transform",
+  "template": {
+    "item": "eternull:dark_core"
+  },
+  "base": {
+    "item": "minecraft:iron_axe"
+  },
+  "addition": {
+    "item": "eternull:nullite"
+  },
+  "result": {
+    "item": "eternull:nullite_axe"
+  }
+}

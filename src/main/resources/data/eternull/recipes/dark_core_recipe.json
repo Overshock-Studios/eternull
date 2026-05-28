@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "aaa",
+    "aaa",
+    "aaa"
+  ],
+  "key": {
+    "a": {
+      "item": "eternull:dark_core_fragment"
+    }
+  },
+  "result": {
+    "item": "eternull:dark_core",
+    "count": 1
+  }
+}

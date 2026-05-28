@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "eternull:block/dark_log",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "eternull:block/dark_log"
+    },
+    "axis=z": {
+      "model": "eternull:block/dark_log",
+      "x": 90
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "aba",
+    "aba"
+  ],
+  "key": {
+    "a": {
+      "item": "minecraft:stick"
+    },
+    "b": {
+      "item": "eternull:dark_planks"
+    }
+  },
+  "result": {
+    "item": "eternull:dark_fence_gate",
+    "count": 1
+  }
+}

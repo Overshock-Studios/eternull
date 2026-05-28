@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "a a",
+    "aaa"
+  ],
+  "key": {
+    "a": {
+      "item": "eternull:dark_planks"
+    }
+  },
+  "result": {
+    "item": "eternull:dark_boat_item",
+    "count": 1
+  }
+}

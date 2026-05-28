@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "eternull:block/dark_slab"
+    },
+    "type=top": {
+      "model": "eternull:block/dark_slab_top"
+    },
+    "type=double": {
+      "model": "eternull:block/dark_slab_full"
+    }
+  }
+}

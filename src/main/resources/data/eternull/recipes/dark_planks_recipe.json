@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "forge:dark_log"
+    }
+  ],
+  "result": {
+    "item": "eternull:dark_planks",
+    "count": 4
+  }
+}

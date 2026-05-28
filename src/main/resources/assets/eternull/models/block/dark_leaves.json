@@ -1,0 +1,7 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "eternull:block/dark_leaves",
+    "particle": "eternull:block/dark_leaves"
+  }
+}

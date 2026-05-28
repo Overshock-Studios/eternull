@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "eternull:nullite_block"
+    }
+  ],
+  "result": {
+    "item": "eternull:nullite",
+    "count": 9
+  }
+}

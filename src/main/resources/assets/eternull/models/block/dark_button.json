@@ -1,0 +1,7 @@
+{
+  "parent": "block/button",
+  "textures": {
+    "texture": "eternull:block/dark_planks"
+  },
+  "render_type": "solid"
+}

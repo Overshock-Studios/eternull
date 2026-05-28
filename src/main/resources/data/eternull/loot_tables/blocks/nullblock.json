@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "eternull:blocks/nullblock",
+  "pools": [
+    {
+      "rolls": 1.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "eternull:dormant_null_block"
+        }
+      ]
+    }
+  ]
+}

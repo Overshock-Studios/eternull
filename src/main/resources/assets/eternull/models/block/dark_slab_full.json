@@ -1,0 +1,9 @@
+{
+  "parent": "block/cube_bottom_top",
+  "textures": {
+    "bottom": "eternull:block/dark_planks",
+    "top": "eternull:block/dark_planks",
+    "side": "eternull:block/dark_planks"
+  },
+  "render_type": "solid"
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "aa"
+  ],
+  "key": {
+    "a": {
+      "item": "eternull:dark_planks"
+    }
+  },
+  "result": {
+    "item": "eternull:dark_pressure_plate",
+    "count": 1
+  }
+}

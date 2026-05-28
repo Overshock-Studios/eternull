@@ -1,0 +1,13 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "eternull:block/dark_log_top",
+    "up": "eternull:block/dark_log_top",
+    "north": "eternull:block/dark_log_side",
+    "east": "eternull:block/dark_log_side",
+    "south": "eternull:block/dark_log_side",
+    "west": "eternull:block/dark_log_side",
+    "particle": "eternull:block/dark_log_top"
+  },
+  "render_type": "solid"
+}
