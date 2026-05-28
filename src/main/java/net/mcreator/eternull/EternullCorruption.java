@@ -1,0 +1,343 @@
+package net.mcreator.eternull;
+
+import java.util.ArrayList;
+import java.util.List;
+import net.mcreator.eternull.entity.CorruptedChargedCreeperEntity;
+import net.mcreator.eternull.entity.CorruptedCreeperEntity;
+import net.mcreator.eternull.entity.CorruptedSpiderEntity;
+import net.mcreator.eternull.entity.CorruptedZombieEntity;
+import net.mcreator.eternull.entity.NullmobEntity;
+import net.mcreator.eternull.init.EternullModBlocks;
+import net.mcreator.eternull.init.EternullModEntities;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Spider;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+
+public final class EternullCorruption {
+   private static final String EXPOSURE_TAG = "eternullCorruptionExposure";
+   private static final BlockPos[] SPREAD_OFFSETS = {
+      new BlockPos(1, 0, 0),
+      new BlockPos(-1, 0, 0),
+      new BlockPos(0, 0, 1),
+      new BlockPos(0, 0, -1),
+      new BlockPos(0, -1, 0),
+      new BlockPos(0, 1, 0),
+      new BlockPos(1, 1, 0),
+      new BlockPos(-1, 1, 0),
+      new BlockPos(0, 1, 1),
+      new BlockPos(0, 1, -1)
+   };
+
+   private EternullCorruption() {
+   }
+
+   public static void tickNullBlock(LevelAccessor world, BlockPos sourcePos) {
+      if (!canSpreadFrom(world, sourcePos)) {
+         return;
+      }
+
+      RandomSource random = random(world);
+      if (!roll(random, EternullConfig.nullBlockSpreadChance())) {
+         tryMakeDormant(world, sourcePos, random);
+         return;
+      }
+
+      List<BlockPos> targets = shuffledTargets(sourcePos, random);
+      for (BlockPos target : targets) {
+         if (corruptBlock(world, target)) {
+            playBlockGlitch(world, target, random);
+            return;
+         }
+      }
+
+      tryMakeDormant(world, sourcePos, random);
+   }
+
+   public static void tickNullMobFootprint(LevelAccessor world, BlockPos sourcePos) {
+      if (!canSpreadFrom(world, sourcePos) || EternullConfig.nullMobFootprintMaxBlocks() <= 0) {
+         return;
+      }
+
+      RandomSource random = random(world);
+      if (!roll(random, EternullConfig.nullMobFootprintChance())) {
+         return;
+      }
+
+      int converted = 0;
+      for (BlockPos target : shuffledFootprintTargets(sourcePos, random)) {
+         if (corruptBlock(world, target)) {
+            converted++;
+            playBlockGlitch(world, target, random);
+            if (converted >= EternullConfig.nullMobFootprintMaxBlocks()) {
+               return;
+            }
+         }
+      }
+   }
+
+   public static void onLivingTick(LivingEvent.LivingTickEvent event) {
+      LivingEntity entity = event.getEntity();
+      if (entity.level().isClientSide || entity.tickCount % 10 != 0) {
+         return;
+      }
+
+      boolean exposed = isTouchingActiveCorruption(entity);
+      if (entity instanceof Player player) {
+         maybeGlitchPlayer(player, exposed);
+         return;
+      }
+
+      if (!EternullConfig.mobCorruptionConversionEnabled() || !(entity instanceof Mob mob) || mob instanceof NullmobEntity) {
+         clearExposure(entity);
+         return;
+      }
+
+      EntityType<? extends Mob> targetType = corruptedVariantFor(mob);
+      if (targetType == null) {
+         clearExposure(entity);
+         return;
+      }
+
+      if (!exposed) {
+         reduceExposure(entity);
+         return;
+      }
+
+      CompoundTag data = entity.getPersistentData();
+      int exposure = data.getInt(EXPOSURE_TAG) + 10;
+      data.putInt(EXPOSURE_TAG, exposure);
+      if (exposure >= EternullConfig.mobCorruptionExposureTicks()
+         && roll(entity.getRandom(), EternullConfig.mobCorruptionConversionChance())) {
+         convertMob(mob, targetType);
+      }
+   }
+
+   public static boolean canSpreadFrom(LevelAccessor world, BlockPos pos) {
+      if (!EternullConfig.isCorruptionSpreadEnabled()) {
+         return false;
+      }
+
+      if (!EternullConfig.corruptionSpreadsOnlyAtNight()) {
+         return true;
+      }
+
+      return !(world instanceof Level level) || !level.isDay() || !world.canSeeSkyFromBelowWater(pos);
+   }
+
+   public static boolean isActiveCorruption(BlockState state) {
+      return state.getBlock() == EternullModBlocks.NULLBLOCK.get();
+   }
+
+   private static void maybeGlitchPlayer(Player player, boolean exposed) {
+      if (!exposed || !EternullConfig.ambientGlitchesEnabled() || !(player.level() instanceof ServerLevel serverLevel)) {
+         return;
+      }
+
+      RandomSource random = player.getRandom();
+      if (!roll(random, EternullConfig.playerCorruptionGlitchChance())) {
+         return;
+      }
+
+      serverLevel.sendParticles(
+         ParticleTypes.REVERSE_PORTAL,
+         player.getX() + (random.nextDouble() - 0.5) * 1.5,
+         player.getY() + 0.2 + random.nextDouble() * 1.5,
+         player.getZ() + (random.nextDouble() - 0.5) * 1.5,
+         8,
+         0.25,
+         0.35,
+         0.25,
+         0.01
+      );
+      serverLevel.playSound(null, player.blockPosition(), SoundEvents.SCULK_CLICKING, SoundSource.AMBIENT, 0.25F, 0.45F + random.nextFloat() * 0.35F);
+   }
+
+   private static boolean isTouchingActiveCorruption(LivingEntity entity) {
+      BlockPos feet = entity.blockPosition();
+      Level level = entity.level();
+      return isActiveCorruption(level.getBlockState(feet))
+         || isActiveCorruption(level.getBlockState(feet.below()))
+         || isActiveCorruption(level.getBlockState(BlockPos.containing(entity.getX(), entity.getY() + 0.5, entity.getZ())));
+   }
+
+   private static EntityType<? extends Mob> corruptedVariantFor(Mob mob) {
+      if (mob instanceof CorruptedZombieEntity
+         || mob instanceof CorruptedCreeperEntity
+         || mob instanceof CorruptedChargedCreeperEntity
+         || mob instanceof CorruptedSpiderEntity) {
+         return null;
+      }
+
+      if (mob instanceof Zombie) {
+         return EternullModEntities.CORRUPTED_ZOMBIE.get();
+      }
+
+      if (mob instanceof Creeper creeper) {
+         return creeper.isPowered() ? EternullModEntities.CORRUPTED_CHARGED_CREEPER.get() : EternullModEntities.CORRUPTED_CREEPER.get();
+      }
+
+      if (mob instanceof Spider) {
+         return EternullModEntities.CORRUPTED_SPIDER.get();
+      }
+
+      return null;
+   }
+
+   private static void convertMob(Mob mob, EntityType<? extends Mob> targetType) {
+      Mob converted = mob.convertTo((EntityType)targetType, true);
+      if (converted == null) {
+         return;
+      }
+
+      converted.setHealth(Math.min(converted.getMaxHealth(), Math.max(1.0F, mob.getHealth())));
+      converted.setDeltaMovement(mob.getDeltaMovement());
+      if (mob.isPersistenceRequired()) {
+         converted.setPersistenceRequired();
+      }
+
+      Level level = converted.level();
+      if (level instanceof ServerLevel serverLevel) {
+         RandomSource random = converted.getRandom();
+         serverLevel.sendParticles(ParticleTypes.SCULK_SOUL, converted.getX(), converted.getY() + converted.getBbHeight() * 0.5, converted.getZ(), 16, 0.25, 0.35, 0.25, 0.02);
+         serverLevel.playSound(null, converted.blockPosition(), SoundEvents.SCULK_CATALYST_BLOOM, SoundSource.HOSTILE, 0.7F, 0.65F + random.nextFloat() * 0.25F);
+      }
+   }
+
+   private static boolean corruptBlock(LevelAccessor world, BlockPos pos) {
+      BlockState oldState = world.getBlockState(pos);
+      if (!canCorrupt(world, pos, oldState)) {
+         return false;
+      }
+
+      world.setBlock(pos, copySharedProperties(oldState, ((Block)EternullModBlocks.NULLBLOCK.get()).defaultBlockState()), 3);
+      return true;
+   }
+
+   private static boolean canCorrupt(LevelAccessor world, BlockPos pos, BlockState state) {
+      Block block = state.getBlock();
+      return block != EternullModBlocks.NULLBLOCK.get()
+         && block != EternullModBlocks.DORMANT_NULL_BLOCK.get()
+         && block != Blocks.AIR
+         && block != Blocks.CAVE_AIR
+         && block != Blocks.VOID_AIR
+         && block != Blocks.WATER
+         && block != Blocks.LAVA
+         && block != Blocks.BEDROCK
+         && block != Blocks.BARRIER
+         && block != Blocks.END_PORTAL
+         && block != Blocks.END_PORTAL_FRAME
+         && block != Blocks.COMMAND_BLOCK
+         && block != Blocks.CHAIN_COMMAND_BLOCK
+         && block != Blocks.REPEATING_COMMAND_BLOCK
+         && block != Blocks.STRUCTURE_BLOCK
+         && block != Blocks.JIGSAW
+         && world.getBlockEntity(pos) == null;
+   }
+
+   private static void tryMakeDormant(LevelAccessor world, BlockPos pos, RandomSource random) {
+      if (roll(random, EternullConfig.nullBlockDormancyChance()) && isActiveCorruption(world.getBlockState(pos))) {
+         BlockState oldState = world.getBlockState(pos);
+         world.setBlock(pos, copySharedProperties(oldState, ((Block)EternullModBlocks.DORMANT_NULL_BLOCK.get()).defaultBlockState()), 3);
+      }
+   }
+
+   private static BlockState copySharedProperties(BlockState oldState, BlockState newState) {
+      BlockState result = newState;
+      for (Property<?> oldProperty : oldState.getProperties()) {
+         Property<?> newProperty = result.getBlock().getStateDefinition().getProperty(oldProperty.getName());
+         if (newProperty != null) {
+            result = copyProperty(oldState, result, oldProperty, newProperty);
+         }
+      }
+      return result;
+   }
+
+   private static <T extends Comparable<T>> BlockState copyProperty(BlockState oldState, BlockState newState, Property<T> oldProperty, Property<?> newProperty) {
+      T value = oldState.getValue(oldProperty);
+      if (newProperty.getValue(value.toString()).isPresent()) {
+         return newState.setValue((Property)newProperty, value);
+      }
+      return newState;
+   }
+
+   private static void playBlockGlitch(LevelAccessor world, BlockPos pos, RandomSource random) {
+      if (!EternullConfig.ambientGlitchesEnabled() || !(world instanceof ServerLevel serverLevel)) {
+         return;
+      }
+
+      serverLevel.sendParticles(ParticleTypes.SCULK_SOUL, pos.getX() + 0.5, pos.getY() + 0.7, pos.getZ() + 0.5, 3, 0.2, 0.2, 0.2, 0.01);
+      if (roll(random, 20)) {
+         serverLevel.playSound(null, pos, SoundEvents.SCULK_BLOCK_SPREAD, SoundSource.BLOCKS, 0.35F, 0.75F + random.nextFloat() * 0.3F);
+      }
+   }
+
+   private static List<BlockPos> shuffledTargets(BlockPos sourcePos, RandomSource random) {
+      List<BlockPos> targets = new ArrayList<>(SPREAD_OFFSETS.length);
+      for (BlockPos offset : SPREAD_OFFSETS) {
+         targets.add(sourcePos.offset(offset));
+      }
+      shuffle(targets, random);
+      return targets;
+   }
+
+   private static List<BlockPos> shuffledFootprintTargets(BlockPos sourcePos, RandomSource random) {
+      List<BlockPos> targets = new ArrayList<>(9);
+      BlockPos floor = sourcePos.below();
+      for (int dx = -1; dx <= 1; dx++) {
+         for (int dz = -1; dz <= 1; dz++) {
+            targets.add(floor.offset(dx, 0, dz));
+         }
+      }
+      shuffle(targets, random);
+      return targets;
+   }
+
+   private static void shuffle(List<BlockPos> positions, RandomSource random) {
+      for (int i = positions.size() - 1; i > 0; i--) {
+         int j = random.nextInt(i + 1);
+         BlockPos value = positions.get(i);
+         positions.set(i, positions.get(j));
+         positions.set(j, value);
+      }
+   }
+
+   private static void reduceExposure(LivingEntity entity) {
+      CompoundTag data = entity.getPersistentData();
+      int exposure = data.getInt(EXPOSURE_TAG);
+      if (exposure <= 10) {
+         data.remove(EXPOSURE_TAG);
+      } else {
+         data.putInt(EXPOSURE_TAG, exposure - 10);
+      }
+   }
+
+   private static void clearExposure(LivingEntity entity) {
+      entity.getPersistentData().remove(EXPOSURE_TAG);
+   }
+
+   private static RandomSource random(LevelAccessor world) {
+      return world instanceof Level level ? level.getRandom() : RandomSource.create();
+   }
+
+   private static boolean roll(RandomSource random, int chance) {
+      return chance >= 100 || chance > 0 && random.nextInt(100) < chance;
+   }
+}

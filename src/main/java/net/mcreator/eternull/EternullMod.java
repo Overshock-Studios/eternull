@@ -23,6 +23,7 @@ import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.TickEvent.Phase;
 import net.neoforged.neoforge.event.TickEvent.ServerTickEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlerEvent;
 import net.neoforged.neoforge.network.handling.IPlayPayloadHandler;
 import net.neoforged.neoforge.network.registration.IPayloadRegistrar;
@@ -65,6 +66,11 @@ public class EternullMod {
       if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
          workQueue.add(new Tuple(action, tick));
       }
+   }
+
+   @SubscribeEvent
+   public void livingTick(LivingEvent.LivingTickEvent event) {
+      EternullCorruption.onLivingTick(event);
    }
 
    @SubscribeEvent
