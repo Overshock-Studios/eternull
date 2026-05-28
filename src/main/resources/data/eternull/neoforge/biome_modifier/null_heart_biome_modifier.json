@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "eternull:the_corruption",
+  "features": "eternull:null_heart",
+  "step": "underground_ores"
+}

@@ -28,6 +28,7 @@ public class EternullModTabs {
          tabData.accept(((Block)EternullModBlocks.NULLITE_BLOCK.get()).asItem());
          tabData.accept(((Block)EternullModBlocks.DORMANT_NULL_BLOCK.get()).asItem());
          tabData.accept(((Block)EternullModBlocks.NULL_WARD.get()).asItem());
+         tabData.accept(((Block)EternullModBlocks.NULL_HEART.get()).asItem());
       } else if (tabData.getTabKey() == CreativeModeTabs.REDSTONE_BLOCKS) {
          tabData.accept(((Block)EternullModBlocks.DARK_FENCE_GATE.get()).asItem());
          tabData.accept(((Block)EternullModBlocks.DARK_PRESSURE_PLATE.get()).asItem());

@@ -12,6 +12,9 @@ public final class EternullConfig {
    private static final ModConfigSpec.IntValue NULL_MOB_FOOTPRINT_MAX_BLOCKS;
    private static final ModConfigSpec.IntValue NULL_WARD_RADIUS;
    private static final ModConfigSpec.IntValue DORMANT_NULL_REACTIVATION_CHANCE;
+   private static final ModConfigSpec.BooleanValue REQUIRE_NULL_HEART_FOR_SPREAD;
+   private static final ModConfigSpec.IntValue NULL_HEART_RADIUS;
+   private static final ModConfigSpec.IntValue NULL_HEART_SPREAD_BONUS;
    private static final ModConfigSpec.BooleanValue MOB_CORRUPTION_CONVERSION;
    private static final ModConfigSpec.IntValue MOB_CORRUPTION_EXPOSURE_TICKS;
    private static final ModConfigSpec.IntValue MOB_CORRUPTION_CONVERSION_CHANCE;
@@ -46,6 +49,15 @@ public final class EternullConfig {
       DORMANT_NULL_REACTIVATION_CHANCE = builder
          .comment("Percent chance for each Dormant Null block near an explosion to reactivate into active Null.")
          .defineInRange("dormantNullExplosionReactivationChance", 35, 0, 100);
+      REQUIRE_NULL_HEART_FOR_SPREAD = builder
+         .comment("When true, active corruption must be within a Null Heart radius to spread or apply major corruption effects.")
+         .define("requireNullHeartForSpread", true);
+      NULL_HEART_RADIUS = builder
+         .comment("Radius in blocks where a Null Heart empowers corruption.")
+         .defineInRange("nullHeartRadius", 48, 1, 128);
+      NULL_HEART_SPREAD_BONUS = builder
+         .comment("Extra spread chance added to active Null blocks within a Null Heart radius.")
+         .defineInRange("nullHeartSpreadBonus", 25, 0, 100);
       builder.pop();
 
       builder.push("entities");
@@ -107,6 +119,18 @@ public final class EternullConfig {
 
    public static int dormantNullReactivationChance() {
       return DORMANT_NULL_REACTIVATION_CHANCE.get();
+   }
+
+   public static boolean requireNullHeartForSpread() {
+      return REQUIRE_NULL_HEART_FOR_SPREAD.getAsBoolean();
+   }
+
+   public static int nullHeartRadius() {
+      return NULL_HEART_RADIUS.get();
+   }
+
+   public static int nullHeartSpreadBonus() {
+      return NULL_HEART_SPREAD_BONUS.get();
    }
 
    public static boolean mobCorruptionConversionEnabled() {

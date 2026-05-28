@@ -123,6 +123,25 @@ Crafting:
 
 The protection radius is configurable with `nullWardRadius`.
 
+### Null Heart
+
+Block ID: `eternull:null_heart`
+
+Display name: **Null Heart**
+
+The Null Heart is the infection epicenter. It generates underground in The Corruption and empowers corruption in a wide configurable radius.
+
+By default, active corruption must be within a Null Heart radius to spread or apply major corruption effects. This gives players a concrete objective: find and destroy the Heart to stop the local infection from advancing. Existing corrupted blocks are not automatically removed, but isolated corruption loses its active spread pressure and major effects once no Heart is nearby.
+
+The Heart:
+
+- Pulses with particles and sculk-like sound when ambience is enabled.
+- Boosts active Null spread chance inside its radius.
+- Defines the maximum practical spread area of a corruption pocket.
+- Drops a Dark Core when broken.
+
+Null Wards do not destroy Hearts, but they can protect nearby blocks from being converted by Heart-empowered corruption.
+
 ### Dormant Reactivation
 
 Dormant Null can wake back up when explosions occur nearby. Each Dormant Null block near affected explosion blocks has a configurable chance to reactivate into active Null.
@@ -189,6 +208,7 @@ A dark wood boat-like entity crafted from Dark Planks.
 - `eternull:nullblock` - Null
 - `eternull:dormant_null_block` - Dormant Null
 - `eternull:null_ward` - Null Ward
+- `eternull:null_heart` - Null Heart
 
 ### Dark Wood Set
 
@@ -381,6 +401,21 @@ Radius in blocks where a Null Ward prevents new corruption spread.
 Default: `35`
 Percent chance for each Dormant Null block near an explosion to reactivate into active Null.
 
+`requireNullHeartForSpread`
+
+Default: `true`
+When enabled, active corruption must be within a Null Heart radius to spread or apply major corruption effects.
+
+`nullHeartRadius`
+
+Default: `48`
+Radius in blocks where a Null Heart empowers corruption.
+
+`nullHeartSpreadBonus`
+
+Default: `25`
+Extra spread chance added to active Null blocks within a Null Heart radius.
+
 ### Entities
 
 `mobCorruptionConversion`  
@@ -443,6 +478,7 @@ build/libs/eternull-1.3.0.jar
 The 1.3.0 redesign moves Eternull toward systemic horror:
 
 - Corruption should spread slowly enough for players to react.
+- Null Hearts should make large corruption pockets feel like local infections with a source to hunt down.
 - Daylight should matter.
 - Caves and covered infected zones should remain dangerous.
 - Mobs should become corrupted through exposure.

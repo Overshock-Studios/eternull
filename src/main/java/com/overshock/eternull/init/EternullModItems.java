@@ -66,6 +66,7 @@ public class EternullModItems {
    public static final DeferredHolder<Item, Item> DARK_CORE_FRAGMENT = REGISTRY.register("dark_core_fragment", () -> new DarkCoreFragmentItem());
    public static final DeferredHolder<Item, Item> DARK_CORE = REGISTRY.register("dark_core", () -> new DarkCoreItem());
    public static final DeferredHolder<Item, Item> NULL_WARD = block(EternullModBlocks.NULL_WARD);
+   public static final DeferredHolder<Item, Item> NULL_HEART = block(EternullModBlocks.NULL_HEART);
 
    public static void register(IEventBus bus) {
       REGISTRY.register(bus);

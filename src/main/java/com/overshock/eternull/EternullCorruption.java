@@ -1,7 +1,9 @@
 package com.overshock.eternull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import com.overshock.eternull.entity.CorruptedChargedCreeperEntity;
 import com.overshock.eternull.entity.CorruptedCreeperEntity;
 import com.overshock.eternull.entity.CorruptedSpiderEntity;
@@ -10,6 +12,7 @@ import com.overshock.eternull.entity.NullmobEntity;
 import com.overshock.eternull.init.EternullModBlocks;
 import com.overshock.eternull.init.EternullModEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -35,6 +38,8 @@ import net.neoforged.neoforge.event.level.ExplosionEvent;
 
 public final class EternullCorruption {
    private static final String EXPOSURE_TAG = "eternullCorruptionExposure";
+   private static final long HEART_CACHE_TICKS = 60L;
+   private static final Map<String, Map<Long, HeartCacheEntry>> HEART_CACHE = new HashMap<>();
    private static final BlockPos[] SPREAD_OFFSETS = {
       new BlockPos(1, 0, 0),
       new BlockPos(-1, 0, 0),
@@ -57,7 +62,8 @@ public final class EternullCorruption {
       }
 
       RandomSource random = random(world);
-      if (!roll(random, EternullConfig.nullBlockSpreadChance())) {
+      int spreadChance = Math.min(100, EternullConfig.nullBlockSpreadChance() + (isWithinNullHeartInfluence(world, sourcePos) ? EternullConfig.nullHeartSpreadBonus() : 0));
+      if (!roll(random, spreadChance)) {
          tryMakeDormant(world, sourcePos, random);
          return;
       }
@@ -107,7 +113,10 @@ public final class EternullCorruption {
          return;
       }
 
-      if (!EternullConfig.mobCorruptionConversionEnabled() || !(entity instanceof Mob mob) || mob instanceof NullmobEntity) {
+      if (!EternullConfig.mobCorruptionConversionEnabled()
+         || !(entity instanceof Mob mob)
+         || mob instanceof NullmobEntity
+         || !isWithinNullHeartInfluence(entity.level(), entity.blockPosition())) {
          clearExposure(entity);
          return;
       }
@@ -148,6 +157,10 @@ public final class EternullCorruption {
          return false;
       }
 
+      if (!isWithinNullHeartInfluence(world, pos)) {
+         return false;
+      }
+
       if (!EternullConfig.corruptionSpreadsOnlyAtNight()) {
          return true;
       }
@@ -157,6 +170,25 @@ public final class EternullCorruption {
 
    public static boolean isActiveCorruption(BlockState state) {
       return state.getBlock() == EternullModBlocks.NULLBLOCK.get();
+   }
+
+   public static boolean isWithinNullHeartInfluence(LevelAccessor world, BlockPos pos) {
+      if (!EternullConfig.requireNullHeartForSpread()) {
+         return true;
+      }
+
+      if (!(world instanceof Level level)) {
+         return false;
+      }
+
+      HeartCacheEntry cached = cachedHeartEntry(level, pos);
+      if (cached != null) {
+         return cached.empowered();
+      }
+
+      boolean empowered = scanForNullHeart(level, pos);
+      cacheHeartEntry(level, pos, empowered);
+      return empowered;
    }
 
    public static boolean isProtectedByWard(LevelAccessor world, BlockPos pos) {
@@ -265,6 +297,48 @@ public final class EternullCorruption {
 
       world.setBlock(pos, copySharedProperties(oldState, corruptionReplacementFor(oldState)), 3);
       return true;
+   }
+
+   private static HeartCacheEntry cachedHeartEntry(Level level, BlockPos pos) {
+      Map<Long, HeartCacheEntry> dimensionCache = HEART_CACHE.get(level.dimension().location().toString());
+      if (dimensionCache == null) {
+         return null;
+      }
+
+      HeartCacheEntry entry = dimensionCache.get(sectionKey(pos));
+      if (entry == null || entry.expiresAt() < level.getGameTime()) {
+         return null;
+      }
+
+      return entry;
+   }
+
+   private static void cacheHeartEntry(Level level, BlockPos pos, boolean empowered) {
+      HEART_CACHE.computeIfAbsent(level.dimension().location().toString(), key -> new HashMap<>())
+         .put(sectionKey(pos), new HeartCacheEntry(empowered, level.getGameTime() + HEART_CACHE_TICKS));
+   }
+
+   private static long sectionKey(BlockPos pos) {
+      return SectionPos.asLong(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getY()), SectionPos.blockToSectionCoord(pos.getZ()));
+   }
+
+   private static boolean scanForNullHeart(Level level, BlockPos pos) {
+      int radius = EternullConfig.nullHeartRadius();
+      int radiusSquared = radius * radius;
+      BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+      for (int dx = -radius; dx <= radius; dx++) {
+         for (int dy = -radius; dy <= radius; dy++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+               if (dx * dx + dy * dy + dz * dz <= radiusSquared) {
+                  mutable.set(pos.getX() + dx, pos.getY() + dy, pos.getZ() + dz);
+                  if (level.getBlockState(mutable).getBlock() == EternullModBlocks.NULL_HEART.get()) {
+                     return true;
+                  }
+               }
+            }
+         }
+      }
+      return false;
    }
 
    private static BlockState corruptionReplacementFor(BlockState oldState) {
@@ -409,5 +483,8 @@ public final class EternullCorruption {
 
    private static boolean roll(RandomSource random, int chance) {
       return chance >= 100 || chance > 0 && random.nextInt(100) < chance;
+   }
+
+   private record HeartCacheEntry(boolean empowered, long expiresAt) {
    }
 }

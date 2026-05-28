@@ -1,5 +1,6 @@
 package com.overshock.eternull.procedures;
 
+import com.overshock.eternull.EternullCorruption;
 import com.overshock.eternull.entity.CorruptedChargedCreeperEntity;
 import com.overshock.eternull.entity.CorruptedCreeperEntity;
 import com.overshock.eternull.entity.CorruptedSpiderEntity;
@@ -28,8 +29,13 @@ import net.minecraft.world.level.LevelAccessor;
 public class NulliteBlockEntityWalksOnTheBlockProcedure {
    public static void execute(LevelAccessor world, double x, double y, double z, Entity entity) {
       if (entity != null) {
+         BlockPos pos = BlockPos.containing(x, y, z);
+         if (!EternullCorruption.isWithinNullHeartInfluence(world, pos)) {
+            return;
+         }
+
          if (entity instanceof Player
-            && !(world instanceof Level _lvl1 && _lvl1.isDay() && world.canSeeSkyFromBelowWater(BlockPos.containing(x, y, z)))
+            && !(world instanceof Level _lvl1 && _lvl1.isDay() && world.canSeeSkyFromBelowWater(pos))
             && (entity instanceof LivingEntity _entGetArmor ? _entGetArmor.getItemBySlot(EquipmentSlot.FEET) : ItemStack.EMPTY).getItem()
                != EternullModItems.NULLITE_ARMOR_BOOTS.get()) {
             if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide()) {

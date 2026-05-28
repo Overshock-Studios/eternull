@@ -1,0 +1,42 @@
+{
+  "type": "minecraft:ore",
+  "config": {
+    "size": 1,
+    "discard_chance_on_air_exposure": 0,
+    "targets": [
+      {
+        "target": {
+          "predicate_type": "minecraft:blockstate_match",
+          "block_state": {
+            "Name": "eternull:nullblock"
+          }
+        },
+        "state": {
+          "Name": "eternull:null_heart"
+        }
+      },
+      {
+        "target": {
+          "predicate_type": "minecraft:blockstate_match",
+          "block_state": {
+            "Name": "minecraft:stone"
+          }
+        },
+        "state": {
+          "Name": "eternull:null_heart"
+        }
+      },
+      {
+        "target": {
+          "predicate_type": "minecraft:blockstate_match",
+          "block_state": {
+            "Name": "minecraft:deepslate"
+          }
+        },
+        "state": {
+          "Name": "eternull:null_heart"
+        }
+      }
+    ]
+  }
+}

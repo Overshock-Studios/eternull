@@ -14,6 +14,7 @@ import com.overshock.eternull.block.DormantNullBlockBlock;
 import com.overshock.eternull.block.NullblockBlock;
 import com.overshock.eternull.block.NulliteBlockBlock;
 import com.overshock.eternull.block.NullWardBlock;
+import com.overshock.eternull.block.NullHeartBlock;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -35,4 +36,5 @@ public class EternullModBlocks {
    public static final DeferredHolder<Block, Block> NULLITE_BLOCK = REGISTRY.register("nullite_block", () -> new NulliteBlockBlock());
    public static final DeferredHolder<Block, Block> DORMANT_NULL_BLOCK = REGISTRY.register("dormant_null_block", () -> new DormantNullBlockBlock());
    public static final DeferredHolder<Block, Block> NULL_WARD = REGISTRY.register("null_ward", () -> new NullWardBlock());
+   public static final DeferredHolder<Block, Block> NULL_HEART = REGISTRY.register("null_heart", () -> new NullHeartBlock());
 }
