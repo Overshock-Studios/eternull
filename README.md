@@ -86,6 +86,7 @@ Corruption spread avoids replacing several important block types:
 - Jigsaw block
 - Blocks with block entities, such as chests and other tile/entity-backed blocks
 - Existing Null, Dormant Null, Dark Log, and Dark Leaves
+- Null Ward blocks and blocks protected by a nearby Null Ward
 
 ### Logs And Leaves
 
@@ -103,6 +104,30 @@ The Null mob can leave corruption behind it. In 1.3.0 this is controlled and lim
 - Footprint corruption is chance-based.
 - Only a small number of nearby floor blocks can convert per check.
 - It respects the same spread rules and protected block checks as normal corruption.
+
+### Null Ward
+
+Block ID: `eternull:null_ward`
+
+Display name: **Null Ward**
+
+The Null Ward is direct counterplay against spreading corruption. By default, it prevents new corruption spread within a 5-block radius.
+
+It does not automatically cleanse existing Null blocks. It protects nearby blocks from being newly converted, making it useful for containment lines, protected rooms, and base defense.
+
+Crafting:
+
+- Dark Core Fragment in the center
+- Dark Logs on the cardinal sides
+- Dark Planks in the corners
+
+The protection radius is configurable with `nullWardRadius`.
+
+### Dormant Reactivation
+
+Dormant Null can wake back up when explosions occur nearby. Each Dormant Null block near affected explosion blocks has a configurable chance to reactivate into active Null.
+
+Null Wards suppress this reactivation inside their protection radius.
 
 ## Mob Conversion
 
@@ -163,6 +188,7 @@ A dark wood boat-like entity crafted from Dark Planks.
 
 - `eternull:nullblock` - Null
 - `eternull:dormant_null_block` - Dormant Null
+- `eternull:null_ward` - Null Ward
 
 ### Dark Wood Set
 
@@ -300,6 +326,7 @@ The mod currently includes recipes for:
 - Dark Slab
 - Dark Stairs
 - Dark sticks
+- Null Ward
 - Dark Core from nine Dark Core Fragments
 - Nullite Block from nine Nullite
 - Nullite from Nullite Block
@@ -344,6 +371,16 @@ Percent chance per Null mob tick to corrupt nearby floor blocks.
 Default: `2`  
 Maximum nearby blocks a Null mob can corrupt during one footprint tick.
 
+`nullWardRadius`
+
+Default: `5`
+Radius in blocks where a Null Ward prevents new corruption spread.
+
+`dormantNullExplosionReactivationChance`
+
+Default: `35`
+Percent chance for each Dormant Null block near an explosion to reactivate into active Null.
+
 ### Entities
 
 `mobCorruptionConversion`  
@@ -357,6 +394,11 @@ Ticks a vanilla mob must stay exposed to active corruption before it can convert
 `mobCorruptionConversionChance`  
 Default: `35`  
 Percent chance for exposed eligible mobs to convert on each conversion check.
+
+`nulliteArmorReflectionCooldown`
+
+Default: `40`
+Ticks between Nullite armor Wither reflection triggers per wearer.
 
 ### Horror
 
@@ -405,4 +447,4 @@ The 1.3.0 redesign moves Eternull toward systemic horror:
 - Caves and covered infected zones should remain dangerous.
 - Mobs should become corrupted through exposure.
 - Logs and leaves should become dead dark variants instead of always becoming Null.
-- Future cleansing or warding tools should give players more direct counterplay.
+- Future cleansing tools should build on the Null Ward so players can both prevent and reverse corruption.

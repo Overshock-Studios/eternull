@@ -1,6 +1,7 @@
 package com.overshock.eternull.procedures;
 
 import javax.annotation.Nullable;
+import com.overshock.eternull.EternullConfig;
 import com.overshock.eternull.init.EternullModItems;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -15,6 +16,8 @@ import net.neoforged.neoforge.event.entity.living.LivingAttackEvent;
 
 @EventBusSubscriber
 public class WitherNulliteArmorProcedure {
+   private static final String REFLECTION_COOLDOWN_TAG = "eternullNulliteArmorReflectionAt";
+
    @SubscribeEvent
    public static void onEntityAttacked(LivingAttackEvent event) {
       if (event != null && event.getEntity() != null) {
@@ -50,9 +53,25 @@ public class WitherNulliteArmorProcedure {
             ticks += 20.0;
          }
 
-         if (sourceentity instanceof LivingEntity _entity && !_entity.level().isClientSide()) {
+         if (ticks > 0.0 && sourceentity instanceof LivingEntity _entity && !_entity.level().isClientSide() && canReflect(entity)) {
             _entity.addEffect(new MobEffectInstance(MobEffects.WITHER, (int)ticks, 2, false, true));
          }
       }
+   }
+
+   private static boolean canReflect(Entity entity) {
+      int cooldown = EternullConfig.nulliteArmorReflectionCooldown();
+      if (cooldown <= 0) {
+         return true;
+      }
+
+      long gameTime = entity.level().getGameTime();
+      long nextAllowed = entity.getPersistentData().getLong(REFLECTION_COOLDOWN_TAG);
+      if (gameTime < nextAllowed) {
+         return false;
+      }
+
+      entity.getPersistentData().putLong(REFLECTION_COOLDOWN_TAG, gameTime + cooldown);
+      return true;
    }
 }

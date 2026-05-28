@@ -24,6 +24,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.TickEvent.Phase;
 import net.neoforged.neoforge.event.TickEvent.ServerTickEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlerEvent;
 import net.neoforged.neoforge.network.handling.IPlayPayloadHandler;
 import net.neoforged.neoforge.network.registration.IPayloadRegistrar;
@@ -71,6 +72,11 @@ public class EternullMod {
    @SubscribeEvent
    public void livingTick(LivingEvent.LivingTickEvent event) {
       EternullCorruption.onLivingTick(event);
+   }
+
+   @SubscribeEvent
+   public void explosionDetonate(ExplosionEvent.Detonate event) {
+      EternullCorruption.onExplosionDetonate(event);
    }
 
    @SubscribeEvent

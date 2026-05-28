@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "plp",
+    "lfl",
+    "plp"
+  ],
+  "key": {
+    "f": {
+      "item": "eternull:dark_core_fragment"
+    },
+    "l": {
+      "item": "eternull:dark_log"
+    },
+    "p": {
+      "item": "eternull:dark_planks"
+    }
+  },
+  "result": {
+    "item": "eternull:null_ward",
+    "count": 1
+  }
+}

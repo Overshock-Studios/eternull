@@ -31,6 +31,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
 
 public final class EternullCorruption {
    private static final String EXPOSURE_TAG = "eternullCorruptionExposure";
@@ -131,6 +132,17 @@ public final class EternullCorruption {
       }
    }
 
+   public static void onExplosionDetonate(ExplosionEvent.Detonate event) {
+      if (event.getLevel().isClientSide || EternullConfig.dormantNullReactivationChance() <= 0) {
+         return;
+      }
+
+      RandomSource random = event.getLevel().getRandom();
+      for (BlockPos affectedPos : event.getAffectedBlocks()) {
+         reactivateDormantNear(event.getLevel(), affectedPos, random);
+      }
+   }
+
    public static boolean canSpreadFrom(LevelAccessor world, BlockPos pos) {
       if (!EternullConfig.isCorruptionSpreadEnabled()) {
          return false;
@@ -145,6 +157,29 @@ public final class EternullCorruption {
 
    public static boolean isActiveCorruption(BlockState state) {
       return state.getBlock() == EternullModBlocks.NULLBLOCK.get();
+   }
+
+   public static boolean isProtectedByWard(LevelAccessor world, BlockPos pos) {
+      int radius = EternullConfig.nullWardRadius();
+      if (radius <= 0) {
+         return false;
+      }
+
+      int radiusSquared = radius * radius;
+      BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+      for (int dx = -radius; dx <= radius; dx++) {
+         for (int dy = -radius; dy <= radius; dy++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+               if (dx * dx + dy * dy + dz * dz <= radiusSquared) {
+                  mutable.set(pos.getX() + dx, pos.getY() + dy, pos.getZ() + dz);
+                  if (world.getBlockState(mutable).getBlock() == EternullModBlocks.NULL_WARD.get()) {
+                     return true;
+                  }
+               }
+            }
+         }
+      }
+      return false;
    }
 
    private static void maybeGlitchPlayer(Player player, boolean exposed) {
@@ -250,6 +285,8 @@ public final class EternullCorruption {
          && block != EternullModBlocks.DORMANT_NULL_BLOCK.get()
          && block != EternullModBlocks.DARK_LOG.get()
          && block != EternullModBlocks.DARK_LEAVES.get()
+         && block != EternullModBlocks.NULL_WARD.get()
+         && !isProtectedByWard(world, pos)
          && block != Blocks.AIR
          && block != Blocks.CAVE_AIR
          && block != Blocks.VOID_AIR
@@ -271,6 +308,24 @@ public final class EternullCorruption {
       if (roll(random, EternullConfig.nullBlockDormancyChance()) && isActiveCorruption(world.getBlockState(pos))) {
          BlockState oldState = world.getBlockState(pos);
          world.setBlock(pos, copySharedProperties(oldState, ((Block)EternullModBlocks.DORMANT_NULL_BLOCK.get()).defaultBlockState()), 3);
+      }
+   }
+
+   private static void reactivateDormantNear(Level world, BlockPos center, RandomSource random) {
+      BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+      for (int dx = -2; dx <= 2; dx++) {
+         for (int dy = -2; dy <= 2; dy++) {
+            for (int dz = -2; dz <= 2; dz++) {
+               mutable.set(center.getX() + dx, center.getY() + dy, center.getZ() + dz);
+               if (world.getBlockState(mutable).getBlock() == EternullModBlocks.DORMANT_NULL_BLOCK.get()
+                  && !isProtectedByWard(world, mutable)
+                  && roll(random, EternullConfig.dormantNullReactivationChance())) {
+                  BlockState oldState = world.getBlockState(mutable);
+                  world.setBlock(mutable, copySharedProperties(oldState, ((Block)EternullModBlocks.NULLBLOCK.get()).defaultBlockState()), 3);
+                  playBlockGlitch(world, mutable, random);
+               }
+            }
+         }
       }
    }
 

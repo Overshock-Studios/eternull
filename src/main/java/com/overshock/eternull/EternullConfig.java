@@ -10,9 +10,12 @@ public final class EternullConfig {
    private static final ModConfigSpec.IntValue NULL_BLOCK_DORMANCY_CHANCE;
    private static final ModConfigSpec.IntValue NULL_MOB_FOOTPRINT_CHANCE;
    private static final ModConfigSpec.IntValue NULL_MOB_FOOTPRINT_MAX_BLOCKS;
+   private static final ModConfigSpec.IntValue NULL_WARD_RADIUS;
+   private static final ModConfigSpec.IntValue DORMANT_NULL_REACTIVATION_CHANCE;
    private static final ModConfigSpec.BooleanValue MOB_CORRUPTION_CONVERSION;
    private static final ModConfigSpec.IntValue MOB_CORRUPTION_EXPOSURE_TICKS;
    private static final ModConfigSpec.IntValue MOB_CORRUPTION_CONVERSION_CHANCE;
+   private static final ModConfigSpec.IntValue NULLITE_ARMOR_REFLECTION_COOLDOWN;
    private static final ModConfigSpec.BooleanValue AMBIENT_GLITCHES;
    private static final ModConfigSpec.IntValue PLAYER_CORRUPTION_GLITCH_CHANCE;
 
@@ -37,6 +40,12 @@ public final class EternullConfig {
       NULL_MOB_FOOTPRINT_MAX_BLOCKS = builder
          .comment("Maximum nearby blocks a Null mob can corrupt during one footprint tick.")
          .defineInRange("nullMobFootprintMaxBlocks", 2, 0, 9);
+      NULL_WARD_RADIUS = builder
+         .comment("Radius in blocks where a Null Ward prevents new corruption spread.")
+         .defineInRange("nullWardRadius", 5, 0, 32);
+      DORMANT_NULL_REACTIVATION_CHANCE = builder
+         .comment("Percent chance for each Dormant Null block near an explosion to reactivate into active Null.")
+         .defineInRange("dormantNullExplosionReactivationChance", 35, 0, 100);
       builder.pop();
 
       builder.push("entities");
@@ -49,6 +58,9 @@ public final class EternullConfig {
       MOB_CORRUPTION_CONVERSION_CHANCE = builder
          .comment("Percent chance for exposed eligible mobs to convert on each conversion check.")
          .defineInRange("mobCorruptionConversionChance", 35, 0, 100);
+      NULLITE_ARMOR_REFLECTION_COOLDOWN = builder
+         .comment("Ticks between Nullite armor Wither reflection triggers per wearer.")
+         .defineInRange("nulliteArmorReflectionCooldown", 40, 0, 1200);
       builder.pop();
 
       builder.push("horror");
@@ -89,6 +101,14 @@ public final class EternullConfig {
       return NULL_MOB_FOOTPRINT_MAX_BLOCKS.get();
    }
 
+   public static int nullWardRadius() {
+      return NULL_WARD_RADIUS.get();
+   }
+
+   public static int dormantNullReactivationChance() {
+      return DORMANT_NULL_REACTIVATION_CHANCE.get();
+   }
+
    public static boolean mobCorruptionConversionEnabled() {
       return MOB_CORRUPTION_CONVERSION.getAsBoolean();
    }
@@ -99,6 +119,10 @@ public final class EternullConfig {
 
    public static int mobCorruptionConversionChance() {
       return MOB_CORRUPTION_CONVERSION_CHANCE.get();
+   }
+
+   public static int nulliteArmorReflectionCooldown() {
+      return NULLITE_ARMOR_REFLECTION_COOLDOWN.get();
    }
 
    public static boolean ambientGlitchesEnabled() {
