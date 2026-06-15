@@ -1,9 +1,10 @@
 package com.overshock.eternull;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import com.overshock.eternull.entity.CorruptedChargedCreeperEntity;
 import com.overshock.eternull.entity.CorruptedCreeperEntity;
 import com.overshock.eternull.entity.CorruptedSpiderEntity;
@@ -12,10 +13,14 @@ import com.overshock.eternull.entity.NullmobEntity;
 import com.overshock.eternull.init.EternullModBlocks;
 import com.overshock.eternull.init.EternullModEntities;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.SectionPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
@@ -37,8 +42,15 @@ import net.neoforged.neoforge.event.entity.living.LivingEvent;
 
 public final class EternullCorruption {
    private static final String EXPOSURE_TAG = "eternullCorruptionExposure";
-   private static final long HEART_CACHE_TICKS = 60L;
-   private static final Map<String, Map<Long, HeartCacheEntry>> HEART_CACHE = new HashMap<>();
+   private static final Map<String, Set<BlockPos>> HEART_POSITIONS = new ConcurrentHashMap<>();
+   private static final BlockPos[] CARDINAL_OFFSETS = {
+      new BlockPos(1, 0, 0),
+      new BlockPos(-1, 0, 0),
+      new BlockPos(0, 1, 0),
+      new BlockPos(0, -1, 0),
+      new BlockPos(0, 0, 1),
+      new BlockPos(0, 0, -1)
+   };
    private static final BlockPos[] SPREAD_OFFSETS = {
       new BlockPos(1, 0, 0),
       new BlockPos(-1, 0, 0),
@@ -52,18 +64,30 @@ public final class EternullCorruption {
       new BlockPos(0, 1, -1)
    };
 
+   public static final ResourceKey<Biome> CORRUPTION_BIOME = ResourceKey.create(
+      Registries.BIOME, new ResourceLocation("eternull", "the_corruption"));
+
    private EternullCorruption() {
    }
 
+   public static boolean isInCorruptionBiome(LevelAccessor world, BlockPos pos) {
+      if (!(world instanceof Level level)) return false;
+      return level.getBiome(pos).is(CORRUPTION_BIOME);
+   }
+
    public static void tickNullBlock(LevelAccessor world, BlockPos sourcePos) {
+      if (!hasNonInertNeighbor(world, sourcePos)) {
+         makeDormant(world, sourcePos);
+         return;
+      }
       if (!canSpreadFrom(world, sourcePos)) {
          return;
       }
 
       RandomSource random = random(world);
-      int spreadChance = Math.min(100, EternullConfig.nullBlockSpreadChance() + (isWithinNullHeartInfluence(world, sourcePos) ? EternullConfig.nullHeartSpreadBonus() : 0));
+      int spreadChance = Math.min(100, EternullConfig.nullBlockSpreadChance()
+         + (isWithinNullHeartInfluence(world, sourcePos) ? EternullConfig.nullHeartSpreadBonus() : 0));
       if (!roll(random, spreadChance)) {
-         tryMakeDormant(world, sourcePos, random);
          return;
       }
 
@@ -74,8 +98,78 @@ public final class EternullCorruption {
             return;
          }
       }
+   }
 
-      tryMakeDormant(world, sourcePos, random);
+   public static boolean hasNonInertNeighbor(LevelAccessor world, BlockPos pos) {
+      BlockPos.MutableBlockPos m = new BlockPos.MutableBlockPos();
+      for (BlockPos off : CARDINAL_OFFSETS) {
+         m.set(pos.getX() + off.getX(), pos.getY() + off.getY(), pos.getZ() + off.getZ());
+         BlockState s = world.getBlockState(m);
+         if (!isInert(s)) return true;
+      }
+      return false;
+   }
+
+   public static boolean isInert(BlockState state) {
+      Block b = state.getBlock();
+      if (state.isAir()) return true;
+      return b == EternullModBlocks.NULLBLOCK.get()
+         || b == EternullModBlocks.DORMANT_NULL_BLOCK.get()
+         || b == EternullModBlocks.NULL_HEART.get()
+         || b == EternullModBlocks.NULL_WARD.get()
+         || b == EternullModBlocks.DARK_LOG.get()
+         || b == EternullModBlocks.DARK_LEAVES.get();
+   }
+
+   public static void onActiveNullNeighborUpdate(LevelAccessor world, BlockPos pos) {
+      if (!hasNonInertNeighbor(world, pos)) {
+         makeDormant(world, pos);
+      }
+   }
+
+   public static void onDormantNeighborUpdate(LevelAccessor world, BlockPos pos) {
+      if (hasNonInertNeighbor(world, pos)) {
+         makeActive(world, pos);
+      }
+   }
+
+   private static void makeDormant(LevelAccessor world, BlockPos pos) {
+      BlockState old = world.getBlockState(pos);
+      if (old.getBlock() != EternullModBlocks.NULLBLOCK.get()) return;
+      world.setBlock(pos, copySharedProperties(old,
+         ((Block) EternullModBlocks.DORMANT_NULL_BLOCK.get()).defaultBlockState()), 3);
+   }
+
+   private static void makeActive(LevelAccessor world, BlockPos pos) {
+      BlockState old = world.getBlockState(pos);
+      if (old.getBlock() != EternullModBlocks.DORMANT_NULL_BLOCK.get()) return;
+      world.setBlock(pos, copySharedProperties(old,
+         ((Block) EternullModBlocks.NULLBLOCK.get()).defaultBlockState()), 3);
+   }
+
+   public static void registerHeart(Level level, BlockPos pos) {
+      HEART_POSITIONS.computeIfAbsent(level.dimension().location().toString(),
+         k -> ConcurrentHashMap.newKeySet()).add(pos.immutable());
+   }
+
+   public static void unregisterHeart(Level level, BlockPos pos) {
+      Set<BlockPos> set = HEART_POSITIONS.get(level.dimension().location().toString());
+      if (set != null) set.remove(pos);
+   }
+
+   public static BlockPos nearestHeart(Level level, BlockPos pos, int maxRadius) {
+      Set<BlockPos> set = HEART_POSITIONS.get(level.dimension().location().toString());
+      if (set == null || set.isEmpty()) return null;
+      double bestSq = (double) maxRadius * maxRadius;
+      BlockPos best = null;
+      for (BlockPos h : set) {
+         double d = h.distSqr(pos);
+         if (d <= bestSq) {
+            bestSq = d;
+            best = h;
+         }
+      }
+      return best;
    }
 
    public static void tickNullMobFootprint(LevelAccessor world, BlockPos sourcePos) {
@@ -107,15 +201,17 @@ public final class EternullCorruption {
       }
 
       boolean exposed = isTouchingActiveCorruption(entity);
+      boolean inBiome = isInCorruptionBiome(entity.level(), entity.blockPosition());
       if (entity instanceof Player player) {
          maybeGlitchPlayer(player, exposed);
+         maybeAuditoryMimicry(player);
          return;
       }
 
       if (!EternullConfig.mobCorruptionConversionEnabled()
          || !(entity instanceof Mob mob)
          || mob instanceof NullmobEntity
-         || !isWithinNullHeartInfluence(entity.level(), entity.blockPosition())) {
+         || (!inBiome && !isWithinNullHeartInfluence(entity.level(), entity.blockPosition()))) {
          clearExposure(entity);
          return;
       }
@@ -126,13 +222,14 @@ public final class EternullCorruption {
          return;
       }
 
-      if (!exposed) {
+      if (!exposed && !inBiome) {
          reduceExposure(entity);
          return;
       }
 
       CompoundTag data = entity.getPersistentData();
-      int exposure = data.getInt(EXPOSURE_TAG) + 10;
+      int gain = exposed && inBiome ? 20 : 10;
+      int exposure = data.getInt(EXPOSURE_TAG) + gain;
       data.putInt(EXPOSURE_TAG, exposure);
       if (exposure >= EternullConfig.mobCorruptionExposureTicks()
          && roll(entity.getRandom(), EternullConfig.mobCorruptionConversionChance())) {
@@ -169,14 +266,11 @@ public final class EternullCorruption {
          return false;
       }
 
-      HeartCacheEntry cached = cachedHeartEntry(level, pos);
-      if (cached != null) {
-         return cached.empowered();
+      if (isInCorruptionBiome(level, pos)) {
+         return true;
       }
 
-      boolean empowered = scanForNullHeart(level, pos);
-      cacheHeartEntry(level, pos, empowered);
-      return empowered;
+      return nearestHeart(level, pos, EternullConfig.nullHeartRadius()) != null;
    }
 
    public static boolean isProtectedByWard(LevelAccessor world, BlockPos pos) {
@@ -200,6 +294,33 @@ public final class EternullCorruption {
          }
       }
       return false;
+   }
+
+   private static final SoundEvent[] MIMICRY_SOUNDS = new SoundEvent[] {
+      SoundEvents.CHEST_OPEN,
+      SoundEvents.WOODEN_DOOR_OPEN,
+      SoundEvents.GRAVEL_BREAK,
+      SoundEvents.STONE_BREAK,
+      SoundEvents.PLAYER_ATTACK_SWEEP,
+      SoundEvents.WOOD_BREAK,
+      SoundEvents.STONE_STEP,
+      SoundEvents.SCULK_CLICKING,
+      SoundEvents.ENDERMAN_AMBIENT
+   };
+
+   private static void maybeAuditoryMimicry(Player player) {
+      if (!EternullConfig.auditoryMimicryEnabled()) return;
+      if (!(player.level() instanceof ServerLevel sl)) return;
+      RandomSource rng = player.getRandom();
+      if (!roll(rng, EternullConfig.auditoryMimicryChance())) return;
+      if (nearestHeart(sl, player.blockPosition(), EternullConfig.auditoryMimicryRadius()) == null) return;
+      double angle = rng.nextDouble() * Math.PI * 2;
+      double dist = 6 + rng.nextDouble() * 14;
+      double x = player.getX() + Math.cos(angle) * dist;
+      double z = player.getZ() + Math.sin(angle) * dist;
+      double y = player.getY() + (rng.nextDouble() - 0.5) * 4;
+      SoundEvent sound = MIMICRY_SOUNDS[rng.nextInt(MIMICRY_SOUNDS.length)];
+      sl.playSound(null, x, y, z, sound, SoundSource.AMBIENT, 0.6F + rng.nextFloat() * 0.4F, 0.7F + rng.nextFloat() * 0.5F);
    }
 
    private static void maybeGlitchPlayer(Player player, boolean exposed) {
@@ -287,48 +408,6 @@ public final class EternullCorruption {
       return true;
    }
 
-   private static HeartCacheEntry cachedHeartEntry(Level level, BlockPos pos) {
-      Map<Long, HeartCacheEntry> dimensionCache = HEART_CACHE.get(level.dimension().location().toString());
-      if (dimensionCache == null) {
-         return null;
-      }
-
-      HeartCacheEntry entry = dimensionCache.get(sectionKey(pos));
-      if (entry == null || entry.expiresAt() < level.getGameTime()) {
-         return null;
-      }
-
-      return entry;
-   }
-
-   private static void cacheHeartEntry(Level level, BlockPos pos, boolean empowered) {
-      HEART_CACHE.computeIfAbsent(level.dimension().location().toString(), key -> new HashMap<>())
-         .put(sectionKey(pos), new HeartCacheEntry(empowered, level.getGameTime() + HEART_CACHE_TICKS));
-   }
-
-   private static long sectionKey(BlockPos pos) {
-      return SectionPos.asLong(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getY()), SectionPos.blockToSectionCoord(pos.getZ()));
-   }
-
-   private static boolean scanForNullHeart(Level level, BlockPos pos) {
-      int radius = EternullConfig.nullHeartRadius();
-      int radiusSquared = radius * radius;
-      BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-      for (int dx = -radius; dx <= radius; dx++) {
-         for (int dy = -radius; dy <= radius; dy++) {
-            for (int dz = -radius; dz <= radius; dz++) {
-               if (dx * dx + dy * dy + dz * dz <= radiusSquared) {
-                  mutable.set(pos.getX() + dx, pos.getY() + dy, pos.getZ() + dz);
-                  if (level.getBlockState(mutable).getBlock() == EternullModBlocks.NULL_HEART.get()) {
-                     return true;
-                  }
-               }
-            }
-         }
-      }
-      return false;
-   }
-
    private static BlockState corruptionReplacementFor(BlockState oldState) {
       if (oldState.is(BlockTags.LEAVES)) {
          return ((Block)EternullModBlocks.DARK_LEAVES.get()).defaultBlockState();
@@ -364,13 +443,6 @@ public final class EternullCorruption {
          && block != Blocks.STRUCTURE_BLOCK
          && block != Blocks.JIGSAW
          && world.getBlockEntity(pos) == null;
-   }
-
-   private static void tryMakeDormant(LevelAccessor world, BlockPos pos, RandomSource random) {
-      if (roll(random, EternullConfig.nullBlockDormancyChance()) && isActiveCorruption(world.getBlockState(pos))) {
-         BlockState oldState = world.getBlockState(pos);
-         world.setBlock(pos, copySharedProperties(oldState, ((Block)EternullModBlocks.DORMANT_NULL_BLOCK.get()).defaultBlockState()), 3);
-      }
    }
 
    private static BlockState copySharedProperties(BlockState oldState, BlockState newState) {
@@ -455,6 +527,4 @@ public final class EternullCorruption {
       return chance >= 100 || chance > 0 && random.nextInt(100) < chance;
    }
 
-   private record HeartCacheEntry(boolean empowered, long expiresAt) {
-   }
 }

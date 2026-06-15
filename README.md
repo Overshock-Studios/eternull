@@ -139,9 +139,29 @@ The Heart:
 - Emits full block light and renders emissively, so it reads like a living glowstone-like corruption source.
 - Boosts active Null spread chance inside its radius.
 - Defines the maximum practical spread area of a corruption pocket.
-- Requires a pickaxe and diamond-tier mining to harvest.
+- Requires a pickaxe and diamond-tier mining to harvest while dormant.
 - Has very high blast resistance, making it difficult to remove with explosives.
-- Drops a Dark Core when broken.
+- Drops a Dark Core when broken, and an extra Heartshard if killed during defense.
+
+### Heart Defense
+
+The Heart actively reacts to nearby players in four phases, tracked by its block entity:
+
+- **Dormant** (no player within 64 blocks): standard mineable block. The loot table drops Dark Core.
+- **Alert** (player within 64 blocks): pulses harder, becomes mining-resistant. Mining will no longer chew through it; it must be punched.
+- **Defending** (within 24 blocks): starts carving short Null-block tunnels toward the player, giving away its direction. Spawns periodic waves of corrupted zombies, spiders, and creepers.
+- **Enraged** (within 8 blocks): faster waves, can include the Null mob, and the Heart cycles into brief immunity windows where it shields incoming damage entirely.
+
+Damage model is hybrid:
+
+- While the Heart is in any defended phase, mining progress is suppressed.
+- Left-clicking (`attack`) the Heart with any tool deals 1 HP per hit on an 8-tick cooldown.
+- HP regenerates slowly when no player is nearby and the Heart drops back to Dormant.
+- When the shell HP reaches zero the Heart shatters, dropping its Dark Core plus a Heartshard, and spawns a Null Guardian on the spot.
+
+### Auditory Mimicry
+
+When `auditoryMimicry` is enabled, players within `auditoryMimicryRadius` of an active Null Heart occasionally hear false ambient sounds at random positions nearby: chests opening, wood snapping, gravel breaking, distant footsteps, sweeping attacks. There is no source — only paranoia.
 
 Null Wards do not destroy Hearts, but they can protect nearby blocks from being converted by Heart-empowered corruption.
 
@@ -166,6 +186,13 @@ Entity ID: `eternull:nullmob`
 Display name: **Null**
 
 The Null is the mod’s central hostile creature. It is fire immune, can corrupt blocks through its footprint behavior, and drops Nullite.
+
+### Null Guardian
+
+Entity ID: `eternull:null_guardian`  
+Display name: **Null Guardian**
+
+A faster, tougher Null variant that emerges from the corpse of a slain Null Heart. It inherits the Null's fire immunity and damage resistances, hits harder, moves faster, and drops a Heartshard plus extra Nullite on death.
 
 ### Corrupted Zombie
 
@@ -235,6 +262,7 @@ Nullite can be compressed into a block and decompressed back into Nullite.
 - `eternull:nullite` - Nullite
 - `eternull:dark_core_fragment` - Dark Core Fragment
 - `eternull:dark_core` - Dark Core
+- `eternull:heartshard` - Heartshard (dropped from a Null Heart killed during its defense, and from Null Guardian death)
 
 Dark Core is crafted from nine Dark Core Fragments and is used as the smithing template item for Nullite gear.
 
@@ -436,6 +464,18 @@ Allows subtle particles and sound stutters near active corruption.
 `playerCorruptionGlitchChance`  
 Default: `3`  
 Percent chance per player check for a small corruption glitch when standing on or near active corruption.
+
+`auditoryMimicry`  
+Default: `true`  
+Allow false ambient sounds to play near active Null Hearts.
+
+`auditoryMimicryChance`  
+Default: `2`  
+Percent chance per player check for an auditory mimicry sound to play.
+
+`auditoryMimicryRadius`  
+Default: `96`  
+Radius in blocks around a Null Heart where auditory mimicry can occur.
 
 ## Technical Notes
 

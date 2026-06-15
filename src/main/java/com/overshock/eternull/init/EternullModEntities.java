@@ -5,6 +5,7 @@ import com.overshock.eternull.entity.CorruptedCreeperEntity;
 import com.overshock.eternull.entity.CorruptedSpiderEntity;
 import com.overshock.eternull.entity.CorruptedZombieEntity;
 import com.overshock.eternull.entity.DarkBoatEntity;
+import com.overshock.eternull.entity.NullGuardianEntity;
 import com.overshock.eternull.entity.NullmobEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.Entity;
@@ -67,6 +68,15 @@ public class EternullModEntities {
          .fireImmune()
          .sized(1.4F, 0.9F)
    );
+   public static final DeferredHolder<EntityType<?>, EntityType<NullGuardianEntity>> NULL_GUARDIAN = register(
+      "null_guardian",
+      Builder.of(NullGuardianEntity::new, MobCategory.MONSTER)
+         .setShouldReceiveVelocityUpdates(true)
+         .setTrackingRange(80)
+         .setUpdateInterval(2)
+         .fireImmune()
+         .sized(0.7F, 2.0F)
+   );
    public static final DeferredHolder<EntityType<?>, EntityType<DarkBoatEntity>> DARK_BOAT = register(
       "dark_boat",
       Builder.of(DarkBoatEntity::new, MobCategory.MONSTER).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(3).sized(0.5F, 0.5F)
@@ -80,6 +90,7 @@ public class EternullModEntities {
    public static void init(FMLCommonSetupEvent event) {
       event.enqueueWork(() -> {
          NullmobEntity.init();
+         NullGuardianEntity.init();
          CorruptedCreeperEntity.init();
          CorruptedChargedCreeperEntity.init();
          CorruptedZombieEntity.init();
@@ -91,6 +102,7 @@ public class EternullModEntities {
    @SubscribeEvent
    public static void registerAttributes(EntityAttributeCreationEvent event) {
       event.put((EntityType)NULLMOB.get(), NullmobEntity.createAttributes().build());
+      event.put((EntityType)NULL_GUARDIAN.get(), NullGuardianEntity.createGuardianAttributes().build());
       event.put((EntityType)CORRUPTED_CREEPER.get(), CorruptedCreeperEntity.createAttributes().build());
       event.put((EntityType)CORRUPTED_CHARGED_CREEPER.get(), CorruptedChargedCreeperEntity.createAttributes().build());
       event.put((EntityType)CORRUPTED_ZOMBIE.get(), CorruptedZombieEntity.createAttributes().build());

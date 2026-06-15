@@ -3,6 +3,7 @@ package com.overshock.eternull.init;
 import com.overshock.eternull.item.DarkBoatItemItem;
 import com.overshock.eternull.item.DarkCoreFragmentItem;
 import com.overshock.eternull.item.DarkCoreItem;
+import com.overshock.eternull.item.HeartshardItem;
 import com.overshock.eternull.item.NulliteArmorItem;
 import com.overshock.eternull.item.NulliteAxeItem;
 import com.overshock.eternull.item.NulliteHoeItem;
@@ -67,6 +68,10 @@ public class EternullModItems {
    public static final DeferredHolder<Item, Item> DARK_CORE = REGISTRY.register("dark_core", () -> new DarkCoreItem());
    public static final DeferredHolder<Item, Item> NULL_WARD = block(EternullModBlocks.NULL_WARD);
    public static final DeferredHolder<Item, Item> NULL_HEART = block(EternullModBlocks.NULL_HEART);
+   public static final DeferredHolder<Item, Item> HEARTSHARD = REGISTRY.register("heartshard", () -> new HeartshardItem());
+   public static final DeferredHolder<Item, Item> NULL_GUARDIAN_SPAWN_EGG = REGISTRY.register(
+      "null_guardian_spawn_egg", () -> new DeferredSpawnEggItem(EternullModEntities.NULL_GUARDIAN, -16777216, -10092544, new Properties())
+   );
 
    public static void register(IEventBus bus) {
       REGISTRY.register(bus);

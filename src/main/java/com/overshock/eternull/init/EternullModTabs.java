@@ -47,9 +47,11 @@ public class EternullModTabs {
          tabData.accept((ItemLike)EternullModItems.CORRUPTED_CHARGED_CREEPER_SPAWN_EGG.get());
          tabData.accept((ItemLike)EternullModItems.CORRUPTED_ZOMBIE_SPAWN_EGG.get());
          tabData.accept((ItemLike)EternullModItems.CORRUPTED_SPIDER_SPAWN_EGG.get());
+         tabData.accept((ItemLike)EternullModItems.NULL_GUARDIAN_SPAWN_EGG.get());
       } else if (tabData.getTabKey() == CreativeModeTabs.INGREDIENTS) {
          tabData.accept((ItemLike)EternullModItems.DARK_CORE_FRAGMENT.get());
          tabData.accept((ItemLike)EternullModItems.DARK_CORE.get());
+         tabData.accept((ItemLike)EternullModItems.HEARTSHARD.get());
       } else if (tabData.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) {
          tabData.accept(((Block)EternullModBlocks.DARK_LEAVES.get()).asItem());
          tabData.accept(((Block)EternullModBlocks.DARK_FENCE.get()).asItem());

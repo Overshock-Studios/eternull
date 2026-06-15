@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import com.overshock.eternull.init.EternullModBlockEntities;
 import com.overshock.eternull.init.EternullModBlocks;
 import com.overshock.eternull.init.EternullModEntities;
 import com.overshock.eternull.init.EternullModItems;
@@ -43,6 +44,7 @@ public class EternullMod {
       NeoForge.EVENT_BUS.register(this);
       modEventBus.addListener(this::registerNetworking);
       EternullModBlocks.REGISTRY.register(modEventBus);
+      EternullModBlockEntities.REGISTRY.register(modEventBus);
       EternullModItems.register(modEventBus);
       EternullModEntities.REGISTRY.register(modEventBus);
       EternullModTabs.REGISTRY.register(modEventBus);

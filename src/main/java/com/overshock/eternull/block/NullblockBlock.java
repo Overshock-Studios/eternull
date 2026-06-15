@@ -1,5 +1,6 @@
 package com.overshock.eternull.block;
 
+import com.overshock.eternull.EternullCorruption;
 import com.overshock.eternull.procedures.NullblockOnTickUpdateProcedure;
 import com.overshock.eternull.procedures.NulliteBlockEntityWalksOnTheBlockProcedure;
 import net.minecraft.core.BlockPos;
@@ -38,5 +39,13 @@ public class NullblockBlock extends Block {
    public void stepOn(Level world, BlockPos pos, BlockState blockstate, Entity entity) {
       super.stepOn(world, pos, blockstate, entity);
       NulliteBlockEntityWalksOnTheBlockProcedure.execute(world, pos.getX(), pos.getY(), pos.getZ(), entity);
+   }
+
+   @Override
+   public void neighborChanged(BlockState state, Level world, BlockPos pos, Block neighborBlock, BlockPos fromPos, boolean isMoving) {
+      super.neighborChanged(state, world, pos, neighborBlock, fromPos, isMoving);
+      if (!world.isClientSide) {
+         EternullCorruption.onActiveNullNeighborUpdate(world, pos);
+      }
    }
 }

@@ -20,6 +20,9 @@ public final class EternullConfig {
    private static final ModConfigSpec.IntValue NULLITE_ARMOR_REFLECTION_COOLDOWN;
    private static final ModConfigSpec.BooleanValue AMBIENT_GLITCHES;
    private static final ModConfigSpec.IntValue PLAYER_CORRUPTION_GLITCH_CHANCE;
+   private static final ModConfigSpec.BooleanValue AUDITORY_MIMICRY;
+   private static final ModConfigSpec.IntValue AUDITORY_MIMICRY_CHANCE;
+   private static final ModConfigSpec.IntValue AUDITORY_MIMICRY_RADIUS;
 
    static {
       ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -32,7 +35,7 @@ public final class EternullConfig {
          .define("corruptionSpreadsOnlyAtNight", true);
       NULL_BLOCK_SPREAD_CHANCE = builder
          .comment("Percent chance for an active Null block random tick to spread into one nearby valid block.")
-         .defineInRange("nullBlockSpreadChance", 30, 0, 100);
+         .defineInRange("nullBlockSpreadChance", 55, 0, 100);
       NULL_BLOCK_DORMANCY_CHANCE = builder
          .comment("Percent chance for an active Null block to become dormant when it fails to spread.")
          .defineInRange("nullBlockDormancyChance", 8, 0, 100);
@@ -50,10 +53,10 @@ public final class EternullConfig {
          .define("requireNullHeartForSpread", true);
       NULL_HEART_RADIUS = builder
          .comment("Radius in blocks where a Null Heart empowers corruption.")
-         .defineInRange("nullHeartRadius", 48, 1, 128);
+         .defineInRange("nullHeartRadius", 160, 1, 512);
       NULL_HEART_SPREAD_BONUS = builder
          .comment("Extra spread chance added to active Null blocks within a Null Heart radius.")
-         .defineInRange("nullHeartSpreadBonus", 25, 0, 100);
+         .defineInRange("nullHeartSpreadBonus", 40, 0, 100);
       builder.pop();
 
       builder.push("entities");
@@ -62,10 +65,10 @@ public final class EternullConfig {
          .define("mobCorruptionConversion", true);
       MOB_CORRUPTION_EXPOSURE_TICKS = builder
          .comment("Ticks a vanilla mob must stay exposed to active corruption before it can convert.")
-         .defineInRange("mobCorruptionExposureTicks", 80, 20, 1200);
+         .defineInRange("mobCorruptionExposureTicks", 60, 20, 1200);
       MOB_CORRUPTION_CONVERSION_CHANCE = builder
          .comment("Percent chance for exposed eligible mobs to convert on each conversion check.")
-         .defineInRange("mobCorruptionConversionChance", 35, 0, 100);
+         .defineInRange("mobCorruptionConversionChance", 70, 0, 100);
       NULLITE_ARMOR_REFLECTION_COOLDOWN = builder
          .comment("Ticks between Nullite armor Wither reflection triggers per wearer.")
          .defineInRange("nulliteArmorReflectionCooldown", 40, 0, 1200);
@@ -78,6 +81,15 @@ public final class EternullConfig {
       PLAYER_CORRUPTION_GLITCH_CHANCE = builder
          .comment("Percent chance per player check for a small corruption glitch when standing on or near active corruption.")
          .defineInRange("playerCorruptionGlitchChance", 3, 0, 100);
+      AUDITORY_MIMICRY = builder
+         .comment("Allow false ambient sounds (chest, pickaxe, footsteps) to play near active Null Hearts.")
+         .define("auditoryMimicry", true);
+      AUDITORY_MIMICRY_CHANCE = builder
+         .comment("Percent chance per player check for an auditory mimicry sound near a Null Heart.")
+         .defineInRange("auditoryMimicryChance", 2, 0, 100);
+      AUDITORY_MIMICRY_RADIUS = builder
+         .comment("Radius in blocks around a Null Heart where auditory mimicry can occur.")
+         .defineInRange("auditoryMimicryRadius", 96, 8, 256);
       builder.pop();
       SERVER_SPEC = builder.build();
    }
@@ -147,5 +159,17 @@ public final class EternullConfig {
 
    public static int playerCorruptionGlitchChance() {
       return PLAYER_CORRUPTION_GLITCH_CHANCE.get();
+   }
+
+   public static boolean auditoryMimicryEnabled() {
+      return AUDITORY_MIMICRY.getAsBoolean();
+   }
+
+   public static int auditoryMimicryChance() {
+      return AUDITORY_MIMICRY_CHANCE.get();
+   }
+
+   public static int auditoryMimicryRadius() {
+      return AUDITORY_MIMICRY_RADIUS.get();
    }
 }
